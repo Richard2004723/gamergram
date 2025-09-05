@@ -13,7 +13,7 @@
     "social",
     "firebase"
   ],
-  "author": "Richard Adeyemo",
+  "author": "",
   "license": "ISC",
   "devDependencies": {
     "autoprefixer": "^10.4.19",
