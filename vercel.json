@@ -1,0 +1,29 @@
+{
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "." }
+    }
+  ],
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/" }
+  ]
+}
+```
+
+### What This File Does
+
+* **`"use": "@vercel/static-build"`**: This tells Vercel, "This is a simple static project. Just run the build command from `package.json` and don't look for any fancy frameworks."
+* **`"config": { "distDir": "." }`**: This is the most important part. It tells Vercel, "After the build is done, the final website is located in the root directory (`.`). Don't look for a `public` folder."
+
+### Your Final Steps
+
+1.  **Save** the new `vercel.json` file in your project.
+2.  **Add, commit, and push** this new file to your GitHub repository.
+
+```cmd
+git add vercel.json
+git commit -m "Add Vercel configuration"
+git push
