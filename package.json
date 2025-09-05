@@ -13,7 +13,7 @@
     "social",
     "firebase"
   ],
-  "author": "",
+  "author": "Richard Adeyemo",
   "license": "ISC",
   "devDependencies": {
     "autoprefixer": "^10.4.19",
@@ -22,15 +22,4 @@
     "tailwindcss": "^3.4.4"
   }
 }
-```
-
-### Your Next Steps
-
-1.  **Save the File:** The `package.json` file is now corrected with only valid JSON.
-2.  **Push to GitHub:** The final step is to commit and push this fix to your GitHub repository. This will trigger a new build on Vercel, which will now succeed.
-
-```cmd
-git add package.json
-git commit -m "Fix: correct syntax in package.json"
-git push
 
