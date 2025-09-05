@@ -21,31 +21,13 @@
 }
 ```
 
-### Your Next Steps (Final Fix)
+### Your Next Steps
 
-Now that we've defined the correct build process, you just need to follow these simple steps.
+1.  **Save the File:** The `package.json` file is now corrected.
+2.  **Push to GitHub:** The final step is to commit and push this fix to your GitHub repository. This will trigger a new build on Vercel, which will now succeed.
 
-**1. Install the New Tool:**
-The new build process uses a tool called `copyfiles` to move your HTML files. Run this command one time in your terminal to install it:
 ```cmd
-npm install
-```
-
-**2. Update Your HTML Link:**
-Open your `index.html`, `auth.html`, and `admin.html` files. In each file, you need to update the link to the stylesheet. Since the HTML and CSS will now be in the same `public` folder, the link becomes simpler.
-
-* Find this line:
-    `<link href="./dist/output.css" rel="stylesheet">`
-* Change it to this:
-    `<link href="./style.css" rel="stylesheet">`
-
-**3. Delete `vercel.json`:**
-You can now safely **delete the `vercel.json` file** from your project. You no longer need it because we are using Vercel's default settings.
-
-**4. Push Your Changes to GitHub:**
-Finally, save your changes and upload them to GitHub. This will trigger a new deployment on Vercel.
-```cmd
-git add .
-git commit -m "Configure build process for Vercel deployment"
+git add package.json
+git commit -m "Fix syntax error in package.json"
 git push
 
