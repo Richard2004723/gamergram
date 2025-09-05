@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body { 
+    font-family: 'Inter', sans-serif; 
+}
+.page-content { 
+    display: none; 
+}
+.page-content.active { 
+    display: block; 
+}
+.nav-active {
+    background: linear-gradient(90deg, rgba(167,139,250,0.12), rgba(139,92,246,0.06));
+    color: white;
+    font-weight: 600;
+}
+.mobile-nav-active svg {
+    color: #A78BFA;
+}
+::-webkit-scrollbar { 
+    width: 8px; 
+}
+::-webkit-scrollbar-track { 
+    background: #000; 
+}
+::-webkit-scrollbar-thumb { 
+    background: #A78BFA; 
+    border-radius: 10px; 
+}
+.modal-hidden { 
+    display: none; 
+}

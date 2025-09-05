@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GamerGram - Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000;
+            color: #E6EDF3;
+        }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+        .nav-link-active { background-color: #A78BFA; color: #FFFFFF; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div id="admin-dashboard" class="hidden">
+        <div class="flex h-screen bg-black">
+            <!-- Sidebar -->
+            <aside class="w-64 bg-black border-r border-gray-800 flex flex-col">
+                <div class="p-6">
+                    <h1 class="text-2xl font-bold text-white"><span class="text-[#A78BFA]">Gamer</span>Gram</h1>
+                    <p class="text-sm text-gray-400">Admin Panel</p>
+                </div>
+                <nav class="flex-1 px-4 space-y-2">
+                    <a href="#users" data-section="users" class="admin-nav-link flex items-center px-4 py-2 rounded-lg text-gray-300 hover:bg-gray-800">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        <span class="ml-3">Manage Users</span>
+                    </a>
+                    <a href="#posts" data-section="posts" class="admin-nav-link flex items-center px-4 py-2 rounded-lg text-gray-300 hover:bg-gray-800">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                        <span class="ml-3">Manage Posts</span>
+                    </a>
+                </nav>
+            </aside>
+            <!-- Main content -->
+            <main class="flex-1 p-8 overflow-y-auto">
+                <!-- User Management Section -->
+                <section id="section-users" class="content-section active">
+                    <h2 class="text-3xl font-bold mb-6">User Management</h2>
+                    <div id="users-list" class="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg">
+                        <!-- User list will be populated here -->
+                    </div>
+                </section>
+                <!-- Post Management Section -->
+                <section id="section-posts" class="content-section">
+                    <h2 class="text-3xl font-bold mb-6">Post Management</h2>
+                    <div id="posts-list" class="space-y-6">
+                       <!-- Posts will be populated here -->
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+    
+    <div id="unauthorized-access" class="min-h-screen flex items-center justify-center text-center p-4">
+        <div>
+            <h1 class="text-4xl font-bold text-red-500">Access Denied</h1>
+            <p class="mt-4 text-gray-400">You do not have permission to view this page.</p>
+            <a href="auth.html" class="mt-6 inline-block bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-4 rounded-lg">Return to Login</a>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, doc, updateDoc, deleteDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Firebase Initialization ---
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : { apiKey: "YOUR_API_KEY", authDomain: "YOUR_AUTH_DOMAIN", ...console.log("Firebase config not found") };
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- IMPORTANT: Admin Access Control ---
+        // Manually add the Firebase UID of admin users here.
+        const adminUIDs = [
+            "REPLACE_WITH_ADMIN_USER_ID_1", 
+            "REPLACE_WITH_ADMIN_USER_ID_2"
+        ];
+        let currentUser = null;
+
+        // --- Auth State Observer ---
+        onAuthStateChanged(auth, user => {
+            if (user && adminUIDs.includes(user.uid)) {
+                // User is an admin
+                currentUser = user;
+                document.getElementById('admin-dashboard').classList.remove('hidden');
+                document.getElementById('unauthorized-access').classList.add('hidden');
+                initializeAdminPanel();
+            } else {
+                // User is not logged in or not an admin
+                document.getElementById('admin-dashboard').classList.add('hidden');
+                document.getElementById('unauthorized-access').classList.remove('hidden');
+                // Optional: Force sign out if a non-admin is logged in
+                if (user) {
+                    signOut(auth);
+                }
+            }
+        });
+
+        function initializeAdminPanel() {
+            // --- Navigation ---
+            const sections = document.querySelectorAll('.content-section');
+            const navLinks = document.querySelectorAll('.admin-nav-link');
+
+            function showSection(sectionId) {
+                sections.forEach(s => s.classList.remove('active'));
+                document.getElementById(`section-${sectionId}`).classList.add('active');
+                navLinks.forEach(link => {
+                    link.classList.toggle('nav-link-active', link.dataset.section === sectionId);
+                });
+            }
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', e => {
+                    e.preventDefault();
+                    window.location.hash = link.dataset.section;
+                });
+            });
+
+            window.addEventListener('hashchange', () => {
+                const sectionId = window.location.hash.substring(1) || 'users';
+                showSection(sectionId);
+            });
+
+            // Initial load
+            showSection(window.location.hash.substring(1) || 'users');
+            
+            // --- Load Data ---
+            loadUsers();
+            loadPosts();
+        }
+        
+        // --- User Management ---
+        async function loadUsers() {
+            const usersCollection = collection(db, `/artifacts/${appId}/public/data/users`);
+            onSnapshot(usersCollection, (snapshot) => {
+                const usersList = document.getElementById('users-list');
+                let html = `<table class="w-full text-sm text-left text-gray-300">
+                                <thead class="text-xs text-gray-400 uppercase bg-[#2a2a2a]">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3">Username</th>
+                                        <th scope="col" class="px-6 py-3">Email</th>
+                                        <th scope="col" class="px-6 py-3">Status</th>
+                                        <th scope="col" class="px-6 py-3">Action</th>
+                                    </tr>
+                                </thead><tbody>`;
+
+                snapshot.docs.forEach(doc => {
+                    const user = { id: doc.id, ...doc.data() };
+                    const isBanned = user.isBanned || false;
+                    html += `<tr class="border-b border-gray-700">
+                                <td class="px-6 py-4 font-medium">${user.username}</td>
+                                <td class="px-6 py-4">${user.email}</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2 py-1 rounded-full text-xs ${isBanned ? 'bg-red-900 text-red-300' : 'bg-green-900 text-green-300'}">
+                                        ${isBanned ? 'Banned' : 'Active'}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <button data-userid="${user.id}" data-banned="${isBanned}" class="toggle-ban-btn font-medium ${isBanned ? 'text-green-500 hover:underline' : 'text-red-500 hover:underline'}">
+                                        ${isBanned ? 'Unban' : 'Ban'}
+                                    </button>
+                                </td>
+                             </tr>`;
+                });
+                html += '</tbody></table>';
+                usersList.innerHTML = html;
+            });
+        }
+        
+        document.addEventListener('click', async (e) => {
+            if (e.target.classList.contains('toggle-ban-btn')) {
+                const userId = e.target.dataset.userid;
+                const isBanned = e.target.dataset.banned === 'true';
+                const userDocRef = doc(db, `/artifacts/${appId}/public/data/users`, userId);
+                await updateDoc(userDocRef, { isBanned: !isBanned });
+            }
+             if (e.target.classList.contains('delete-post-btn')) {
+                const postId = e.target.dataset.postid;
+                if (confirm('Are you sure you want to delete this post?')) {
+                     const postDocRef = doc(db, `/artifacts/${appId}/public/data/posts`, postId);
+                     await deleteDoc(postDocRef);
+                }
+            }
+        });
+
+        // --- Post Management ---
+        function loadPosts() {
+            const postsCollection = collection(db, `/artifacts/${appId}/public/data/posts`);
+            onSnapshot(postsCollection, (snapshot) => {
+                const postsList = document.getElementById('posts-list');
+                if (snapshot.empty) {
+                    postsList.innerHTML = `<p class="text-center text-gray-500">No posts found.</p>`;
+                    return;
+                }
+                postsList.innerHTML = snapshot.docs.map(doc => {
+                    const post = { id: doc.id, ...doc.data() };
+                    return `<div class="bg-[#1a1a1a] p-4 rounded-lg border border-[#2a2a2a]">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <p class="text-white font-semibold">${post.username}</p>
+                                        <p class="text-gray-300 mt-2">${post.caption}</p>
+                                        <p class="text-violet-400 text-sm mt-1">${post.tags || ''}</p>
+                                        <p class="text-gray-500 text-xs mt-2">Posted on: ${new Date(post.createdAt?.toDate()).toLocaleString()}</p>
+                                    </div>
+                                    <button data-postid="${post.id}" class="delete-post-btn text-red-500 hover:text-red-400 font-semibold">Delete</button>
+                                </div>
+                            </div>`;
+                }).join('');
+            });
+        }
+    </script>
+</body>
+</html>

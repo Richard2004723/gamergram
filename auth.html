@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to GamerGram</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000;
+            color: #E6EDF3;
+        }
+        .auth-container { display: none; }
+        .auth-container.active { display: block; }
+        button:disabled {
+            background-color: #4c1d95;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <main class="min-h-screen flex items-center justify-center bg-black p-4">
+        <!-- Sign In Form -->
+        <div id="signin-container" class="auth-container active w-full max-w-sm">
+            <div class="p-8 space-y-6 bg-[#1a1a1a] rounded-xl border border-[#2a2a2a]">
+                <h2 class="text-3xl font-bold text-center"><span class="text-[#A78BFA]">Gamer</span>Gram</h2>
+                <form id="signin-form" class="space-y-4">
+                    <input id="signin-email" type="email" placeholder="Email" class="w-full bg-black border border-gray-700 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#A78BFA]" required>
+                    <input id="signin-password" type="password" placeholder="Password" class="w-full bg-black border border-gray-700 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#A78BFA]" required>
+                    <div class="text-right">
+                        <a href="#" id="show-forgot" class="text-sm font-medium text-violet-400 hover:underline">Forgot Password?</a>
+                    </div>
+                    <button id="signin-button" type="submit" class="w-full bg-violet-600 hover:bg-violet-700 text-white font-bold py-3 rounded-lg transition" disabled>Connecting...</button>
+                    <p id="auth-message" class="text-sm text-center"></p>
+                </form>
+                <p class="text-center text-sm text-gray-400">Don't have an account? <a href="#signup" id="show-signup" class="font-bold text-[#A78BFA] hover:underline cursor-pointer">Sign Up</a></p>
+            </div>
+        </div>
+
+        <!-- Sign Up Form -->
+        <div id="signup-container" class="auth-container w-full max-w-sm">
+             <div class="p-8 space-y-6 bg-[#1a1a1a] rounded-xl border border-[#2a2a2a]">
+                <h2 class="text-3xl font-bold text-center">Sign Up for <span class="text-[#A78BFA]">Gamer</span>Gram</h2>
+                <form id="signup-form" class="space-y-4">
+                    <input id="signup-email" type="email" placeholder="Email" class="w-full bg-black border border-gray-700 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#A78BFA]" required>
+                    <input id="signup-username" type="text" placeholder="Username" class="w-full bg-black border border-gray-700 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#A78BFA]" required>
+                    <input id="signup-password" type="password" placeholder="Password" class="w-full bg-black border border-gray-700 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#A78BFA]" required>
+                    <button id="signup-button" type="submit" class="w-full bg-violet-600 hover:bg-violet-700 text-white font-bold py-3 rounded-lg transition" disabled>Connecting...</button>
+                    <p id="signup-error" class="text-red-500 text-sm text-center"></p>
+                </form>
+                <p class="text-center text-sm text-gray-400">Have an account? <a href="#signin" id="show-signin" class="font-bold text-[#A78BFA] hover:underline cursor-pointer">Log In</a></p>
+            </div>
+        </div>
+
+        <!-- Forgot Password Form -->
+        <div id="forgot-password-container" class="auth-container w-full max-w-sm">
+             <div class="p-8 space-y-6 bg-[#1a1a1a] rounded-xl border border-[#2a2a2a]">
+                <h2 class="text-3xl font-bold text-center">Reset Password</h2>
+                <p class="text-center text-sm text-gray-400">Enter your email and we'll send you a link to get back into your account.</p>
+                <form id="forgot-password-form" class="space-y-4">
+                    <input id="reset-email" type="email" placeholder="Email" class="w-full bg-black border border-gray-700 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#A78BFA]" required>
+                    <button id="reset-button" type="submit" class="w-full bg-violet-600 hover:bg-violet-700 text-white font-bold py-3 rounded-lg transition" disabled>Connecting...</button>
+                    <p id="reset-success" class="text-green-500 text-sm text-center"></p>
+                    <p id="reset-error" class="text-red-500 text-sm text-center"></p>
+                </form>
+                <p class="text-center text-sm text-gray-400"><a href="#signin" id="show-signin-from-forgot" class="font-bold text-[#A78BFA] hover:underline cursor-pointer">Back to Log In</a></p>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            onAuthStateChanged,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            sendPasswordResetEmail,
+            signInAnonymously,
+            signOut
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Firebase Initialization ---
+        // ===================================================================================
+        // === IMPORTANT: PASTE YOUR FIREBASE CONFIGURATION OBJECT FROM THE FIREBASE CONSOLE HERE ===
+        // ===================================================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyB2aJP1_9HA05T-F7ibtUh29XWAHRmCCdg",
+  authDomain: "gamergram-9a855.firebaseapp.com",
+  projectId: "gamergram-9a855",
+  storageBucket: "gamergram-9a855.firebasestorage.app",
+  messagingSenderId: "225075637418",
+  appId: "1:225075637418:web:9d094d12fd811e21cf74d3",
+  measurementId: "G-0Y9L8CHJFQ"
+};
+        // ===================================================================================
+
+        const appId = 'gamergram-app'; // Use a consistent App ID
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let isSigningUp = false;
+        
+        // --- Get DOM Elements ---
+        const signinButton = document.getElementById('signin-button');
+        const signupButton = document.getElementById('signup-button');
+        const resetButton = document.getElementById('reset-button');
+
+        // --- Initial Anonymous/Custom Auth ---
+        (async () => {
+            try {
+                await signInAnonymously(auth);
+                // Enable forms once initial auth is complete
+                signinButton.disabled = false;
+                signinButton.textContent = 'Log In';
+                signupButton.disabled = false;
+                signupButton.textContent = 'Sign Up';
+                resetButton.disabled = false;
+                resetButton.textContent = 'Send Reset Link';
+
+            } catch (error) {
+                console.error("Error during initial authentication:", error);
+                const authMessage = document.getElementById('auth-message');
+                authMessage.textContent = "Could not connect to service. Check config and refresh.";
+                authMessage.classList.add('text-red-500');
+            }
+        })();
+
+        // --- Auth State Observer ---
+        onAuthStateChanged(auth, user => {
+            if (isSigningUp) {
+                return; // Prevent redirection during the signup process
+            }
+            if (user && !user.isAnonymous) {
+                window.location.href = './index.html';
+            }
+        });
+        
+        // --- UI Logic for Switching Forms ---
+        const signinContainer = document.getElementById('signin-container');
+        const signupContainer = document.getElementById('signup-container');
+        const forgotPasswordContainer = document.getElementById('forgot-password-container');
+        const showSignupLinks = document.querySelectorAll('#show-signup');
+        const showSigninLinks = document.querySelectorAll('#show-signin, #show-signin-from-forgot');
+        const showForgotLink = document.getElementById('show-forgot');
+
+        showSignupLinks.forEach(link => link.addEventListener('click', (e) => {
+            e.preventDefault();
+            signinContainer.classList.remove('active');
+            forgotPasswordContainer.classList.remove('active');
+            signupContainer.classList.add('active');
+        }));
+
+        showSigninLinks.forEach(link => link.addEventListener('click', (e) => {
+            e.preventDefault();
+            signupContainer.classList.remove('active');
+            forgotPasswordContainer.classList.remove('active');
+            signinContainer.classList.add('active');
+        }));
+
+        showForgotLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            signinContainer.classList.remove('active');
+            signupContainer.classList.remove('active');
+            forgotPasswordContainer.classList.add('active');
+        });
+
+        // --- Form Handlers ---
+        const signupForm = document.getElementById('signup-form');
+        const signinForm = document.getElementById('signin-form');
+        const forgotPasswordForm = document.getElementById('forgot-password-form');
+        const authMessage = document.getElementById('auth-message');
+        const signupError = document.getElementById('signup-error');
+        const resetSuccess = document.getElementById('reset-success');
+        const resetError = document.getElementById('reset-error');
+
+        // Sign Up Handler
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            signupError.textContent = '';
+            isSigningUp = true; 
+
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const username = document.getElementById('signup-username').value.toLowerCase();
+
+            if (!username || !email || !password) {
+                signupError.textContent = "All fields are required.";
+                isSigningUp = false;
+                return;
+            }
+
+            try {
+                const usersCollectionRef = collection(db, `/artifacts/${appId}/public/data/users`);
+                const q = query(usersCollectionRef, where("username", "==", username));
+                const querySnapshot = await getDocs(q);
+                if (!querySnapshot.empty) {
+                    signupError.textContent = "This username is already taken. Please choose another.";
+                    isSigningUp = false; 
+                    return;
+                }
+
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                const userDocRef = doc(db, `/artifacts/${appId}/public/data/users`, user.uid);
+                await setDoc(userDocRef, {
+                    username: username,
+                    email: email,
+                    followers: [],
+                    following: [],
+                    bio: `Welcome to my GamerGram profile!`,
+                    isBanned: false,
+                    createdAt: new Date()
+                });
+                
+                await signOut(auth);
+                
+                signupForm.reset();
+                authMessage.textContent = "Account created! Please log in.";
+                authMessage.classList.add('text-green-500');
+                authMessage.classList.remove('text-red-500');
+                signupContainer.classList.remove('active');
+                signinContainer.classList.add('active');
+
+            } catch (error) {
+                console.error("Full Signup Error Object:", error); 
+                
+                if (error.code === 'auth/email-already-in-use') {
+                    signupError.textContent = 'This email is already registered.';
+                } else if (error.code === 'auth/weak-password') {
+                    signupError.textContent = 'Password should be at least 6 characters.';
+                } else if (error.code === 'permission-denied') {
+                     signupError.textContent = "Permission denied. Please check Firestore rules.";
+                }
+                else {
+                    signupError.textContent = "An error occurred during sign-up. Please try again.";
+                }
+            } finally {
+                isSigningUp = false; 
+            }
+        });
+
+        // Sign In Handler
+        signinForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            authMessage.textContent = '';
+            const email = document.getElementById('signin-email').value;
+            const password = document.getElementById('signin-password').value;
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+            } catch (error) {
+                console.error("Signin Error:", error);
+                authMessage.textContent = "Invalid email or password.";
+                authMessage.classList.add('text-red-500');
+                authMessage.classList.remove('text-green-500');
+            }
+        });
+
+        // Forgot Password Handler
+        forgotPasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            resetError.textContent = '';
+            resetSuccess.textContent = '';
+            const email = document.getElementById('reset-email').value;
+
+            try {
+                await sendPasswordResetEmail(auth, email);
+                resetSuccess.textContent = "Password reset email sent! Check your inbox.";
+            } catch (error) {
+                console.error("Password Reset Error:", error);
+                resetError.textContent = "Could not send reset email. Please check the address.";
+            }
+        });
+    </script>
+</body>
+</html>
+
