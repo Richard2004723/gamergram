@@ -2,19 +2,13 @@
   "name": "gamergram",
   "version": "1.0.0",
   "description": "A social platform for gamers to share clips and connect.",
-  "main": "index.js",
+  "author": "Richard Adeyemo",
+  "license": "ISC",
   "scripts": {
     "build": "npm run copy-files && tailwindcss -i ./src/input.css -o ./public/style.css",
     "copy-files": "copyfiles -u 1 ./*.html public/",
     "watch": "tailwindcss -i ./src/input.css -o ./public/style.css --watch"
   },
-  "keywords": [
-    "gaming",
-    "social",
-    "firebase"
-  ],
-  "author": "Richard Adeyemo",
-  "license": "ISC",
   "devDependencies": {
     "autoprefixer": "^10.4.19",
     "copyfiles": "^2.4.1",
@@ -22,4 +16,3 @@
     "tailwindcss": "^3.4.4"
   }
 }
-
