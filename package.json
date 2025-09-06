@@ -1,12 +1,13 @@
 {
   "name": "gamergram",
   "version": "1.0.0",
+  "private": true,
   "description": "A social platform for gamers to share clips and connect.",
   "author": "Richard Adeyemo",
   "license": "ISC",
   "scripts": {
     "build": "npm run copy-files && tailwindcss -i ./src/input.css -o ./public/style.css",
-    "copy-files": "copyfiles -u 1 ./*.html public/",
+    "copy-files": "copyfiles ./*.html public/",
     "watch": "tailwindcss -i ./src/input.css -o ./public/style.css --watch"
   },
   "devDependencies": {
